@@ -2,62 +2,46 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Doto Parametric Editor - Final Rendering Fix</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Doto Editor - True Blob Matrix Engine</title>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@0..100,100..900&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@0..100,100..900&display=swap" rel="stylesheet">
+    
     <style>
         :root { 
             --bg: #0a0a0a; --panel: #161616; --accent: #00ff41;
-            /* 制御用変数 */
             --f-rond: 100; --f-wght: 400; --f-spacing: 0px;
             --f-skew: 0deg; --f-scaleX: 1; --f-scaleY: 1;
             --f-color: hsl(140, 100%, 50%);
         }
-        body { background: var(--bg); color: #eee; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
-        
-        .viewport {
-            width: 100%; height: 350px; background: #000; display: flex; justify-content: center; 
-            align-items: center; overflow: hidden; border-bottom: 2px solid #222;
+        body { background: var(--bg); color: #eee; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
+        .viewport { width: 100%; height: 180px; background: #000; display: flex; justify-content: center; align-items: center; border-bottom: 2px solid #333; position: sticky; top: 0; z-index: 100; overflow: hidden; }
+        .doto-render { 
+            font-family: 'Doto', sans-serif; 
+            font-variation-settings: "ROND" var(--f-rond), "wght" var(--f-wght); 
+            letter-spacing: var(--f-spacing); 
+            transform: scale(var(--f-scaleX), var(--f-scaleY)) skewX(var(--f-skew)); 
+            color: var(--f-color); font-size: 80px; white-space: nowrap; line-height: 1;
         }
+        .input-bar { width: 100%; padding: 10px; background: #111; box-sizing: border-box; }
+        input[type="text"] { width: 100%; background: #000; color: var(--accent); border: 1px solid #444; padding: 12px; border-radius: 8px; outline: none; box-sizing: border-box; font-size: 16px; }
         
-        /* 共通のレンダリングクラス */
-        .doto-render {
-            font-family: 'Doto', sans-serif;
-            font-variation-settings: "ROND" var(--f-rond), "wght" var(--f-wght);
-            letter-spacing: var(--f-spacing);
-            color: var(--f-color);
-            transform: scale(var(--f-scaleX), var(--f-scaleY)) skewX(var(--f-skew));
-            white-space: nowrap;
-            line-height: 1;
-            display: inline-block;
-        }
-
-        #text-layer { font-size: 150px; }
-
-        .toolbar { width: 95%; max-width: 1000px; margin: 20px 0; display: flex; gap: 10px; }
-        button { background: #333; color: white; border: 1px solid #444; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 13px; font-weight: bold; }
-        button:hover { border-color: var(--accent); }
-        .btn-save { background: #00441b; color: #afffaf; }
+        .control-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 95%; margin: 15px 0; }
+        .control-item { background: var(--panel); padding: 10px 5px; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center; }
+        .icon-label { font-size: 11px; height: 30px; text-align: center; color: #aaa; margin-bottom: 5px; font-weight: bold; }
+        input[type="range"] { appearance: auto; writing-mode: vertical-lr; direction: rtl; width: 30px; height: 100px; accent-color: var(--accent); cursor: pointer; }
+        .val-txt { font-size: 10px; color: var(--accent); font-family: monospace; margin-top: 5px; }
         
-        .main-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 95%; max-width: 1000px; }
-        .section { background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid #333; }
-        h3 { margin: 0 0 15px 0; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 95%; }
+        button { padding: 15px; border: none; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; color: white; background: #333; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        .btn-zip { background: #0066ff; grid-column: span 2; }
+        .btn-ttf { background: #ff9500; grid-column: span 2; font-size: 14px; }
+        .btn-full { grid-column: span 2; }
         
-        .row { margin-bottom: 18px; }
-        .label-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; color: #aaa; }
-        input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-        .val { color: var(--accent); font-family: monospace; }
-        
-        input[type="text"] { background: #000; color: var(--accent); border: 1px solid #333; padding: 10px; flex-grow: 1; outline: none; }
-
-        #glyph-overlay { 
-            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-            background:rgba(0,0,0,0.98); z-index:1000; overflow-y:auto; padding:40px; 
-        }
-        .glyph-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:20px; }
-        .glyph-item { background:#111; padding:30px 10px; text-align:center; border-radius:8px; border:1px solid #222; }
-        .glyph-char { font-size: 60px; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .glyph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 15px; }
+        .glyph-item { background: #111; padding: 15px 0; border: 1px solid #333; border-radius: 8px; text-align: center; }
+        #status-msg { color: #ff9500; font-size: 12px; text-align: center; margin-top: 5px; height: 15px; }
     </style>
 </head>
 <body>
@@ -66,113 +50,301 @@
         <div id="text-layer" class="doto-render">GHOSTINKOMA</div>
     </div>
 
+    <div class="input-bar">
+        <input type="text" id="custom-text" placeholder="TEXT INPUT..." oninput="window.updateText(this.value)">
+    </div>
+
+    <div id="status-msg"></div>
+
+    <div class="control-grid" id="controls"></div>
+
     <div class="toolbar">
-        <button class="btn-save" onclick="saveParams()">保存 (.prm)</button>
-        <button onclick="document.getElementById('file-input').click()">読込</button>
-        <input type="file" id="file-input" style="display:none" onchange="loadParams(event)">
-        <button onclick="toggleGlyphs()">全グリフ表示</button>
-        <input type="text" id="custom-text" placeholder="INPUT TEXT" oninput="updateText(this.value)">
+        <button id="zip-btn" class="btn-zip">SVG ZIP全出力 (テキスト維持)</button>
+        <button id="ttf-btn" class="btn-ttf">完全TTF生成 (Blob・マトリクス解析)</button>
+        <button id="save-btn">設定保存</button>
+        <button id="load-btn">設定読込</button>
+        <button id="show-glyphs-btn" class="btn-full">全グリフをプレビュー</button>
+        <input type="file" id="file-input" style="display:none">
     </div>
 
-    <div class="main-container">
-        <div class="section">
-            <h3>Geometry & Spacing</h3>
-            <div class="row">
-                <div class="label-row"><span>丸み (ROND)</span><span class="val" id="v-rond">100</span></div>
-                <input type="range" id="p-rond" min="0" max="100" value="100">
-            </div>
-            <div class="row">
-                <div class="label-row"><span>太さ (wght)</span><span class="val" id="v-wght">400</span></div>
-                <input type="range" id="p-wght" min="100" max="900" value="400">
-            </div>
-            <div class="row">
-                <div class="label-row"><span>字間 (Spacing)</span><span class="val" id="v-spacing">0</span></div>
-                <input type="range" id="p-spacing" min="-50" max="100" value="0">
-            </div>
-            <div class="row">
-                <div class="label-row"><span>イタリック角</span><span class="val" id="v-skew">0</span></div>
-                <input type="range" id="p-skew" min="-45" max="45" value="0">
-            </div>
-            <div class="row">
-                <div class="label-row"><span>スケール X / Y</span></div>
-                <div style="display:flex; gap:10px;">
-                    <input type="range" id="p-scaleX" min="0.5" max="3" step="0.1" value="1.0">
-                    <input type="range" id="p-scaleY" min="0.5" max="3" step="0.1" value="1.0">
-                </div>
-            </div>
-        </div>
+    <div id="overlay"></div>
 
-        <div class="section">
-            <h3>Color</h3>
-            <div class="row"><div class="label-row"><span>Hue</span><span class="val" id="v-hue">140</span></div><input type="range" id="p-hue" min="0" max="360" value="140"></div>
-            <div class="row"><div class="label-row"><span>Sat</span><span class="val" id="v-sat">100</span></div><input type="range" id="p-sat" min="0" max="100" value="100"></div>
-            <div class="row"><div class="label-row"><span>Light</span><span class="val" id="v-light">50</span></div><input type="range" id="p-light" min="0" max="100" value="50"></div>
-        </div>
-    </div>
+    <script type="module">
+        import svg2ttf from 'https://cdn.skypack.dev/svg2ttf';
+        import JSZip from 'https://cdn.skypack.dev/jszip';
 
-    <div id="glyph-overlay" onclick="this.style.display='none'"></div>
-
-    <script>
         const root = document.documentElement;
-        const params = ['rond', 'wght', 'spacing', 'skew', 'scaleX', 'scaleY', 'hue', 'sat', 'light'];
+        const configParams = [
+            { id: 'rond', label: '丸み(ROND)', min: 0, max: 100, val: 100 },
+            { id: 'wght', label: '太さ(WGHT)', min: 100, max: 900, val: 400 },
+            { id: 'spacing', label: '字間隔', min: -20, max: 80, val: 0 },
+            { id: 'skew', label: '斜体', min: -45, max: 45, val: 0 },
+            { id: 'scaleX', label: '横幅比', min: 0.5, max: 3, step: 0.1, val: 1.0 },
+            { id: 'scaleY', label: '縦幅比', min: 0.5, max: 3, step: 0.1, val: 1.0 },
+            { id: 'hue', label: '色相', min: 0, max: 360, val: 140 },
+            { id: 'sat', label: '彩度', min: 0, max: 100, val: 100 },
+            { id: 'light', label: '明度', min: 0, max: 100, val: 50 }
+        ];
+
+        // UI生成
+        const grid = document.getElementById('controls');
+        configParams.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'control-item';
+            div.innerHTML = `<div class="icon-label">${p.label}</div><input type="range" id="p-${p.id}" min="${p.min}" max="${p.max}" step="${p.step || 1}" value="${p.val}"><div class="val-txt" id="v-${p.id}">${p.val}</div>`;
+            grid.appendChild(div);
+            div.querySelector('input').addEventListener('input', update);
+        });
 
         function update() {
-            const v = {};
-            params.forEach(p => {
-                v[p] = document.getElementById('p-' + p).value;
-                const d = document.getElementById('v-' + p);
-                if (d) d.innerText = v[p];
+            configParams.forEach(p => {
+                const val = document.getElementById('p-' + p.id).value;
+                document.getElementById('v-' + p.id).innerText = val;
+                const unit = (p.id === 'spacing' ? 'px' : p.id === 'skew' ? 'deg' : '');
+                root.style.setProperty('--f-' + p.id, (p.id === 'skew' ? -val : val) + unit);
             });
-
-            // CSS変数を一括更新
-            root.style.setProperty('--f-rond', v.rond);
-            root.style.setProperty('--f-wght', v.wght);
-            root.style.setProperty('--f-spacing', v.spacing + 'px');
-            root.style.setProperty('--f-skew', (-v.skew) + 'deg');
-            root.style.setProperty('--f-scaleX', v.scaleX);
-            root.style.setProperty('--f-scaleY', v.scaleY);
-            root.style.setProperty('--f-color', `hsl(${v.hue}, ${v.sat}%, ${v.light}%)`);
+            const h = document.getElementById('p-hue').value, s = document.getElementById('p-sat').value, l = document.getElementById('p-light').value;
+            root.style.setProperty('--f-color', `hsl(${h}, ${s}%, ${l}%)`);
         }
 
-        function updateText(t) { document.getElementById('text-layer').innerText = t || "GHOSTINKOMA"; }
+        window.updateText = (t) => { document.getElementById('text-layer').innerText = t || "GHOSTINKOMA"; };
 
-        function saveParams() {
-            const config = {};
-            params.forEach(p => config[p] = document.getElementById('p-' + p).value);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' }));
-            a.download = 'doto_config.prm'; a.click();
+        // ★★★ ドットのベクター形状を生成する関数 ★★★
+        function createVectorDotPath(cx, cy, w, h, rond) {
+            const r = (Math.min(w, h) / 2) * (rond / 100);
+            const left = cx - w/2;
+            const right = cx + w/2;
+            const top = cy + h/2; // TTF座標はYが上方向
+            const bot = cy - h/2;
+
+            if (r < 1) {
+                // 完全な四角形
+                return `M ${left} ${bot} L ${left} ${top} L ${right} ${top} L ${right} ${bot} Z `;
+            }
+            if (rond >= 95) {
+                // 完全な円（2つの円弧で描画）
+                return `M ${left} ${cy} A ${w/2} ${h/2} 0 1 1 ${right} ${cy} A ${w/2} ${h/2} 0 1 1 ${left} ${cy} Z `;
+            }
+            // 角丸四角形
+            return `M ${left+r} ${bot} ` +
+                   `L ${right-r} ${bot} A ${r} ${r} 0 0 0 ${right} ${bot+r} ` +
+                   `L ${right} ${top-r} A ${r} ${r} 0 0 0 ${right-r} ${top} ` +
+                   `L ${left+r} ${top} A ${r} ${r} 0 0 0 ${left} ${top-r} ` +
+                   `L ${left} ${bot+r} A ${r} ${r} 0 0 0 ${left+r} ${bot} Z `;
         }
 
-        function loadParams(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const config = JSON.parse(ev.target.result);
-                for (let p in config) {
-                    const el = document.getElementById('p-' + p);
-                    if (el) el.value = config[p];
+        // ★★★ Blob（塊）検出エンジン ★★★
+        async function extractGlyphMatrix(char, params) {
+            const width = 200, height = 200;
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            // キャンバスにDotoを描画
+            // 修正箇所：fontVariationSettingsはCanvasに反映されないため、font-weightとしてwghtパラメータを指定します。
+            const fontSize = 150;
+            ctx.font = `${params.wght} ${fontSize}px "Doto"`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            
+            const metrics = ctx.measureText(char);
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "black";
+            
+            const baseX = 20, baseY = 160;
+            ctx.fillText(char, baseX, baseY); 
+
+            const imgData = ctx.getImageData(0, 0, width, height).data;
+            const visited = new Uint8Array(width * height);
+            let path = "";
+            
+            // キャンバス座標をTTF座標(1000em基準)に変換するスケール
+            const scaleFactor = 1000 / fontSize; 
+            const skewRad = params.skew * Math.PI / 180;
+
+            // ピクセルを走査して「ドットの塊」を探す
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    
+                    if (imgData[idx * 4 + 3] > 128 && !visited[idx]) {
+                        // 新しいドットを発見！ BFS（幅優先探索）で塊の境界を取得
+                        let minX = x, maxX = x, minY = y, maxY = y;
+                        const queue = [[x, y]];
+                        visited[idx] = 1;
+                        let qIdx = 0;
+
+                        while (qIdx < queue.length) {
+                            const [cx, cy] = queue[qIdx++];
+                            if (cx < minX) minX = cx;
+                            if (cx > maxX) maxX = cx;
+                            if (cy < minY) minY = cy;
+                            if (cy > maxY) maxY = cy;
+
+                            // 上下左右の隣接ピクセルを確認
+                            const neighbors = [[cx-1, cy], [cx+1, cy], [cx, cy-1], [cx, cy+1]];
+                            for (let i = 0; i < 4; i++) {
+                                const nx = neighbors[i][0], ny = neighbors[i][1];
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const nIdx = ny * width + nx;
+                                    if (imgData[nIdx * 4 + 3] > 128 && !visited[nIdx]) {
+                                        visited[nIdx] = 1;
+                                        queue.push([nx, ny]);
+                                    }
+                                }
+                            }
+                        }
+
+                        // 塊（ドット1個）のキャンバス上の中心座標とサイズ
+                        const cX_canvas = (minX + maxX) / 2;
+                        const cY_canvas = (minY + maxY) / 2;
+                        const blobW = maxX - minX + 1;
+                        const blobH = maxY - minY + 1;
+
+                        if (blobW < 2 && blobH < 2) continue; // ノイズは除外
+
+                        // TTFの座標系へ変換（Y軸を反転させる）
+                        let ttfX = (cX_canvas - baseX) * scaleFactor * params.scaleX;
+                        let ttfY = (baseY - cY_canvas) * scaleFactor * params.scaleY;
+                        
+                        // 斜体（シアー）の計算
+                        ttfX += ttfY * Math.tan(skewRad);
+
+                        const ttfW = blobW * scaleFactor * params.scaleX;
+                        const ttfH = blobH * scaleFactor * params.scaleY;
+
+                        // RONDパラメータに応じたベクターパスを追加
+                        path += createVectorDotPath(ttfX, ttfY, ttfW, ttfH, params.rond);
+                    }
                 }
-                update();
-            };
-            reader.readAsText(e.target.files[0]);
+            }
+
+            // アドバンス幅（文字の横幅）の計算
+            let advX = Math.round((metrics.width * scaleFactor * params.scaleX) + Number(params.spacing)*10);
+            if (advX < 200) advX = 300;
+
+            return { path: path || "M0 0 h10 v10 Z", advX: advX };
         }
 
-        function toggleGlyphs() {
-            const overlay = document.getElementById('glyph-overlay');
-            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;':\",./<>?";
+        // TTF生成処理
+        document.getElementById('ttf-btn').onclick = async function() {
+            const btn = this;
+            const msg = document.getElementById('status-msg');
+            btn.disabled = true;
+            btn.innerText = "フォント読込待機中...";
             
-            let html = `<div style="color:var(--accent); font-size:11px; margin-bottom:20px;">[ CLICK TO CLOSE ]</div><div class="glyph-grid">`;
-            chars.split('').forEach(c => {
-                // .doto-render クラスを付与するだけで共通のCSS変数が適用される
-                html += `<div class="glyph-item"><span class="doto-render glyph-char">${c}</span></div>`;
+            try {
+                // ゴシック化を防ぐため、Dotoのロード完了を確実に待つ
+                await document.fonts.load('150px "Doto"');
+                btn.innerText = "Blob・マトリクス解析中...";
+
+                const params = {
+                    rond: document.getElementById('p-rond').value,
+                    wght: document.getElementById('p-wght').value,
+                    spacing: document.getElementById('p-spacing').value,
+                    skew: document.getElementById('p-skew').value,
+                    scaleX: document.getElementById('p-scaleX').value,
+                    scaleY: document.getElementById('p-scaleY').value
+                };
+
+                const charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+                let glyphsXml = "";
+
+                glyphsXml += `<glyph unicode="" horiz-adv-x="500" d="M50 0 v800 h400 v-800 Z M100 50 h300 v700 h-300 Z" />\n`;
+
+                const charArray = charSet.split('');
+                for (let i = 0; i < charArray.length; i++) {
+                    const char = charArray[i];
+                    msg.innerText = `解析中: ${char} (${i+1}/${charArray.length})`;
+                    
+                    await new Promise(r => setTimeout(r, 0)); // UIフリーズ防止
+                    
+                    const hex = char.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+                    const glyphData = await extractGlyphMatrix(char, params);
+                    
+                    glyphsXml += `<glyph unicode="&#x${hex};" horiz-adv-x="${glyphData.advX}" d="${glyphData.path}" />\n`;
+                }
+
+                btn.innerText = "TTFバイナリ構築中...";
+                
+                const svgFont = `<?xml version="1.0" standalone="yes"?>
+<svg xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <font id="DotoMatrix" horiz-adv-x="1000">
+            <font-face font-family="DotoMatrix" units-per-em="1000" ascent="800" descent="-200" />
+            ${glyphsXml}
+        </font>
+    </defs>
+</svg>`;
+
+                const ttf = svg2ttf(svgFont, { copyright: 'Generated by True Blob Matrix Engine', version: '2.0' });
+                const blob = new Blob([ttf.buffer], {type: 'application/x-font-ttf'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `Doto_${params.wght}_${params.rond}.ttf`;
+                a.click();
+
+                msg.innerText = "生成完了！ 丸みも太さも完璧です。";
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "エラー: " + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "完全TTF生成 (Blob・マトリクス解析)";
+                setTimeout(() => msg.innerText = "", 3000);
+            }
+        };
+
+        // SVG ZIP出力
+        document.getElementById('zip-btn').onclick = async function() {
+            this.innerText = "ZIP生成中...";
+            const zip = new JSZip();
+            const charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            
+            const cssColor = getComputedStyle(root).getPropertyValue('--f-color').trim();
+            const r = document.getElementById('p-rond').value;
+            const w = document.getElementById('p-wght').value;
+
+            charSet.split('').forEach(char => {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Doto" font-size="70" fill="${cssColor}" style="font-variation-settings:'ROND' ${r},'wght' ${w}">${char}</text></svg>`;
+                zip.file(`${char}.svg`, svg);
             });
-            html += `</div>`;
-            
-            overlay.innerHTML = html;
-            overlay.style.display = 'block';
-        }
 
-        params.forEach(id => document.getElementById('p-' + id).addEventListener('input', update));
+            const blob = await zip.generateAsync({type:"blob"});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download="doto_svgs.zip"; a.click();
+            this.innerText = "SVG ZIP全出力 (テキスト維持)";
+        };
+
+        // 全グリフ表示機能
+        document.getElementById('show-glyphs-btn').onclick = function() {
+            const o = document.getElementById('overlay');
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 !?+-=*/".split('');
+            o.innerHTML = `<div onclick="this.parentElement.style.display='none'" style="color:var(--accent);text-align:center;padding:20px;cursor:pointer;font-weight:bold;font-size:20px;">[ 閉じる ]</div>
+            <div class="glyph-grid">${chars.map(c => `<div class="glyph-item"><span class="doto-render" style="font-size:32px;">${c}</span></div>`).join('')}</div>`;
+            o.style.display = 'block';
+        };
+
+        // 設定の保存・読込
+        document.getElementById('save-btn').onclick = () => {
+            const c = {}; configParams.forEach(p => c[p.id] = document.getElementById('p-' + p.id).value);
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(c)])); a.download = 'doto_config.prm'; a.click();
+        };
+
+        document.getElementById('load-btn').onclick = () => document.getElementById('file-input').click();
+
+        document.getElementById('file-input').onchange = (e) => {
+            const r = new FileReader();
+            r.onload = (ev) => {
+                try {
+                    const c = JSON.parse(ev.target.result);
+                    for (let p in c) { if(document.getElementById('p-'+p)) document.getElementById('p-'+p).value = c[p]; }
+                    update();
+                } catch(e) { alert("無効なファイルです"); }
+            };
+            r.readAsText(e.target.files[0]);
+        };
+
+        // 初期化実行
         update();
     </script>
 </body>
